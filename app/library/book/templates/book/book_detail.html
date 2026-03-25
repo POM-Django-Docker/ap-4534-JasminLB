@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Book{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">{{ book.name }}</h2>
+
+    <a href="{% url 'book_list' %}" class="btn btn-outline-secondary btn-sm">
+        ← Back
+    </a>
+</div>
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+
+        <div class="row mb-3">
+            <div class="col-md-3 fw-semibold">
+                Description
+            </div>
+            <div class="col-md-9">
+                <div class="bg-light border rounded p-2">
+                    {{ book.description|default:"No description" }}
+                </div>
+            </div>
+        </div>
+
+        {% if request.user.is_authenticated and request.user.role == 0 %}
+            <div class="row mb-3">
+                <div class="col-md-3 fw-semibold">
+                    Status
+                </div>
+                <div class="col-md-9">
+                    <div class="bg-light border rounded p-2">
+                        {% if book.count > 0 %}
+                            <span class="text-success">Available</span>
+                        {% else %}
+                            <span class="text-danger">Not available</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="row mb-3">
+                <div class="col-md-3 fw-semibold">
+                    Available copies
+                </div>
+                <div class="col-md-9">
+                    <div class="bg-light border rounded p-2">
+                        {{ book.count }}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="row">
+            <div class="col-md-3 fw-semibold">
+                Authors
+            </div>
+            <div class="col-md-9">
+                <div class="bg-light border rounded p-2">
+                    {% if book.authors.all %}
+                        <ul class="mb-0 ps-3">
+                            {% for a in book.authors.all %}
+                                <li>
+                                    {{ a.surname }} {{ a.name }}{% if a.patronymic %} {{ a.patronymic }}{% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <span class="text-muted">No authors</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% if request.user.is_authenticated and request.user.role == 0 %}
+    <div class="mb-4">
+        {% if book.count > 0 %}
+            <form method="post" action="{% url 'order_create' book.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <button type="submit" class="btn btn-success">
+                    Take book
+                </button>
+            </form>
+        {% else %}
+            <span class="badge bg-danger">Not available</span>
+        {% endif %}
+    </div>
+{% endif %}
+
+{% endblock %}
